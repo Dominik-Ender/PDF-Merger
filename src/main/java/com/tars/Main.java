@@ -1,5 +1,7 @@
 package com.tars;
 
+import com.tars.strategy.CurrentPathStrategy;
+import com.tars.strategy.FileChooserPathStrategy;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 
 import java.awt.*;
@@ -36,7 +38,8 @@ public class Main extends JFrame {
 
         JFrame.setDefaultLookAndFeelDecorated(true);
 
-        JFrame frame = new JFrame(PDFMERGER);
+//        JFrame frame = new JFrame(PDFMERGER);
+        JFrame frame = new StyledFrame(PDFMERGER);
 
         JButton jAddFileButton, jRemoveFileButton, jMergeFilesButton, jClearListButton;
         JScrollPane jScrollPane;
@@ -47,23 +50,31 @@ public class Main extends JFrame {
         JPanel midPanel = new JPanel();
         JPanel bottomPanel = new JPanel();
 
-        BoxLayout boxlayout = new BoxLayout(topPanel, BoxLayout.X_AXIS);
+        BoxLayout boxLayoutTop = new BoxLayout(topPanel, BoxLayout.Y_AXIS);
+        BoxLayout boxLayoutCenter = new BoxLayout(midPanel, BoxLayout.Y_AXIS);
+        BoxLayout boxLayoutBottom = new BoxLayout(bottomPanel, BoxLayout.Y_AXIS);
 
-        topPanel.setLayout(boxlayout);
+        topPanel.setLayout(boxLayoutTop);
+        midPanel.setLayout(boxLayoutCenter);
+        bottomPanel.setLayout(boxLayoutBottom);
 
-        topPanel.setBorder(new EmptyBorder(new Insets(100, 150, 100, 150)));
-        midPanel.setBorder(new EmptyBorder(new Insets(100, 150, 100, 150)));
-        bottomPanel.setBorder(new EmptyBorder(new Insets(100, 150, 100, 150)));
+        topPanel.setBorder(new EmptyBorder(new Insets(10, 20, 10, 15)));
+        midPanel.setBorder(new EmptyBorder(new Insets(10, 15, 10, 15)));
+        bottomPanel.setBorder(new EmptyBorder(new Insets(10, 20, 10, 15)));
 
         DefaultListModel<String> listModel = new DefaultListModel<>();
         JList<String> fileList = new JList<>(listModel);
         jScrollPane = new JScrollPane(fileList);
+        jScrollPane.setPreferredSize(new Dimension(550, 200));
+        jScrollPane.setUI(new StyledScrollPaneUI(15, Color.GREEN, Color.BLACK));
 
         jAddFileButton = new JButton(ADDFILEBUTTONNAME);
+        jAddFileButton.setFont(new Font("Calibri", Font.PLAIN, 14));
+        jAddFileButton.setBackground(new Color(0x2dce98));
+        jAddFileButton.setUI(new StyledButtonUI());
         jAddFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
 
                 if(currentPath != null && !currentPath.isEmpty()) {
                     fileChooserPathStrategy = new CurrentPathStrategy(currentPath);
@@ -79,8 +90,6 @@ public class Main extends JFrame {
                 jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 jFileChooser.setMultiSelectionEnabled(true);
 
-                System.out.println("||| " + currentPath);
-
                 if(jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                     File[] selectedFiles = jFileChooser.getSelectedFiles();
 
@@ -95,6 +104,8 @@ public class Main extends JFrame {
         });
 
         jRemoveFileButton = new JButton(REMOVEFILEBUTTONAME);
+        jRemoveFileButton.setUI(new StyledButtonUI());
+        jRemoveFileButton.setBackground(new Color(0x2dce98));
         jRemoveFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -106,6 +117,8 @@ public class Main extends JFrame {
         });
 
         jMergeFilesButton = new JButton(MERGEFILESBUTTONNAME);
+        jMergeFilesButton.setUI(new StyledButtonUI());
+        jMergeFilesButton.setBackground(new Color(0x2dce98));
         jMergeFilesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -159,6 +172,8 @@ public class Main extends JFrame {
         });
 
         jClearListButton = new JButton(CLEARLISTBUTTONNAME);
+        jClearListButton.setUI(new StyledButtonUI());
+        jClearListButton.setBackground(new Color(0x2dce98));
         jClearListButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -168,17 +183,62 @@ public class Main extends JFrame {
             }
         });
 
-        topPanel.add(jAddFileButton);
-        topPanel.add(jRemoveFileButton);
-        topPanel.add(jClearListButton);
+        Dimension buttonSize = new Dimension(120, 30);
+        jAddFileButton.setPreferredSize(buttonSize);
+        jRemoveFileButton.setPreferredSize(buttonSize);
+        jClearListButton.setPreferredSize(buttonSize);
+        jMergeFilesButton.setPreferredSize(buttonSize);
 
-        midPanel.add(jScrollPane, BorderLayout.CENTER);
+        JPanel content = new JPanel(new GridBagLayout());
+        content.setBorder(new EmptyBorder(10,10,10,10));
+        frame.setContentPane(content);
 
-        bottomPanel.add(jMergeFilesButton);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
 
-        frame.add(topPanel, BorderLayout.NORTH);
-        frame.add(midPanel, BorderLayout.CENTER);
-        frame.add(bottomPanel, BorderLayout.SOUTH);
+// Zeile 0 – drei Buttons nebeneinander
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        gbc.gridx = 0;
+        content.add(jAddFileButton, gbc);
+
+        gbc.gridx = 1;
+        content.add(jRemoveFileButton, gbc);
+
+        gbc.gridx = 2;
+        content.add(jClearListButton, gbc);
+
+// Zeile 1 – ScrollPane über ganze Breite
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;              // über alle Spalten
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;               // ScrollPane füllt vertikal aus
+        content.add(jScrollPane, gbc);
+
+// Zeile 2 – Merge-Button
+
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.WEST;
+        gbc.weighty = 0;
+        content.add(jMergeFilesButton, gbc);
+
+
+//        topPanel.add(jAddFileButton, BorderLayout.NORTH);
+//        topPanel.add(jRemoveFileButton, BorderLayout.NORTH);
+//        topPanel.add(jClearListButton, BorderLayout.NORTH);
+//
+//        midPanel.add(jScrollPane, BorderLayout.CENTER);
+//
+//        bottomPanel.add(jMergeFilesButton);
+//
+//        frame.add(topPanel, BorderLayout.NORTH);
+//        frame.add(midPanel, BorderLayout.CENTER);
+//        frame.add(bottomPanel, BorderLayout.SOUTH);
 
         frame.pack();
 

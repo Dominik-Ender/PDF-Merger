@@ -1,4 +1,4 @@
-package com.tars;
+package com.tars.strategy;
 
 import javax.swing.*;
 
